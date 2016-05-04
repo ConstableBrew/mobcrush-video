@@ -1,0 +1,27 @@
+{
+  "name": "mobcrush-video",
+  "version": "1.0.0",
+  "description": "Lets try and convert mpeg-ts chunks on the fly!",
+  "main": "server.js",
+  "scripts": {
+    "build": "browserify index.js --outfile bundle.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ConstableBrew/mobcrush-video.git"
+  },
+  "keywords": [],
+  "author": "Michael Brewer <constablebrew@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ConstableBrew/mobcrush-video/issues"
+  },
+  "homepage": "https://github.com/ConstableBrew/mobcrush-video#readme",
+  "dependencies": {
+    "finalhandler": "^0.4.1",
+    "serve-static": "^1.10.2"
+  },
+  "devDependencies": {
+    "mpegts_to_mp4": "^1.0.1"
+  }
+}
