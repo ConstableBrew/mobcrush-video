@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
+	<title>MobCrush Hiring Team Opinion Survey</title>
+</head>
+<style>
+	* {
+		box-sizing: border-box;
+	}
+
+	h1, h2, h3, p, .row {
+		text-align: center;
+		width: 600px;
+		margin: 0.5em auto;
+	}
+	p {
+		text-align: left;
+	}
+	.row {
+		white-space: nowrap;
+	}
+	.column {
+		display: inline-block;
+		width: 50%;
+		height: 125px;
+		text-align: center;
+		padding: 5px;
+		white-space: normal;
+	}
+
+	button {
+		display: inline-block;
+		padding: .375rem 1rem;
+		font-size: 1rem;
+		font-weight: 400;
+		line-height: 1.5;
+		text-align: center;
+		white-space: nowrap;
+		vertical-align: middle;
+		cursor: pointer;
+		-webkit-user-select: none;
+		-moz-user-select: none;
+		-ms-user-select: none;
+		user-select: none;
+		border: 1px solid transparent;
+		border-radius: .25rem;
+	}
+	button.btn-success {
+		color: #fff;
+		background-color: #5cb85c;
+		border-color: #5cb85c;
+	}
+	button.btn-danger {
+		color: #fff;
+		background-color: #d9534f;
+		border-color: #d9534f;
+	}
+
+	#yes {
+		position: relative;
+		transition: transform 1000ms ease-in;
+	}
+	#no {
+		position: relative;
+		transition: transform 250ms ease-out;
+	}
+</style>
+</head>
+<body>
+	<h1>MobCrush Hiring Team Opinion Survey</h1>
+
+	<h2>The Wait is Killing Me</h2>
+	<p>Anticipation has made me restless, so I have created this simple survey to help the hiring team come to a consensus much quicker and let me know if I'm hired or not. Just answer the questions below and the results will be quickly and fairly tallied.</p>
+	
+	<br><br>
+	<h3>Should MobCrush hire Michael Brewer?</h3>
+	
+	<div class="row">
+		<div class="column">
+				<button id="yes" class="btn-success">Yes</button>
+			<div>He is highly talented and he will be a fun guy to work with.</div>
+		</div>
+		<div class="column">
+			<button id="no" class="btn-danger">No</button>
+			<div>His immense potential scares me and I would enjoy his company way too much.</div>
+		</div>
+	</div>
+
+	<script>
+		!function(){
+			document.body.addEventListener('mousemove', pullAndPush);
+			document.body.addEventListener('mousedown', pullAndPush);
+			
+			const MARGIN = 10;
+			var yes = document.getElementById('yes');
+			var no = document.getElementById('no');
+
+			var yesOrigin = {x: yes.offsetLeft - yes.parentNode.offsetLeft, y: yes.offsetTop - yes.parentNode.offsetTop};
+
+			// History of Mouse Positions (to identify mouse movement vector)
+			var p1 = {x: 0, y: 0};
+			var p2 = {x: 0, y: 0};
+
+			function pullAndPush(event){
+				p2 = {x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2}; // Averaging position for previous two points
+				p1 = {x: event.clientX, y: event.clientY};
+				attraction();
+				evasion();
+			}
+			function attraction(event){
+				var box = yes.getBoundingClientRect();
+				var aabb = { // Axis Aligned Bounding Box
+					tl: {x: box.left - MARGIN, y: box.top - MARGIN},
+					br: {x: box.left + box.width + MARGIN, y: box.top + box.height + MARGIN},
+					w: box.width,
+					h: box.height
+				};
+
+				// Is the mouse pointer inside the button box?
+				if (aabb.tl.x < p1.x &&
+					aabb.br.x > p1.x &&
+					aabb.tl.y < p1.y &&
+					aabb.br.y > p1.y
+				) {
+					return;
+				}
+				var x = yes.offsetLeft - p1.x + aabb.w/2;
+				var y = yes.offsetTop - p1.y + aabb.h/2;
+
+				yes.style.transform = 'translateX(' + -x + 'px) translateY(' + -y + 'px)';
+				
+			}
+			function evasion(event){
+
+				var box = no.getBoundingClientRect();
+				var aabb = { // Axis Aligned Bounding Box
+					tl: {x: box.left - MARGIN, y: box.top - MARGIN},
+					br: {x: box.left + box.width + MARGIN, y: box.top + box.height + MARGIN},
+					w: box.width,
+					h: box.height
+				};
+
+				// Is the mouse pointer inside the button box?
+				if (aabb.tl.x < p1.x &&
+					aabb.br.x > p1.x &&
+					aabb.tl.y < p1.y &&
+					aabb.br.y > p1.y
+				) {
+					var x = no.offsetLeft - p1.x + aabb.w*2;
+					var y = no.offsetTop - p1.y + aabb.h*2;
+
+					no.style.transform = 'translateX(' + -x + 'px) translateY(' + -y + 'px)';
+				}
+
+			}
+		}();
+
+	</script>
+</body></html>
