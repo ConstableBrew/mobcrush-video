@@ -1,21 +1,287 @@
-<!DOCTYPE html>
-<html>
-<head>
-	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
-	<meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
-	<meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-	<title>I Crush on MobCrush</title>
-</head>
-<body>
-	<h3>Hi MobCrush!</h3>
-	<p>JWPlayer is the standard in playing videos on the web. <i>But</i>, sometimes it is fun to explore other options. In this demo, I use the nifty MPEGTS-to-MP4 converter, a pure JavaScript library that converts MPEG-TS video chunks into MPEG-4 and playing them.<p>
+<!doctype html>
+<html ng-app="web">
 
-	<p><a href="https://github.com/ConstableBrew/mobcrush-video">Source</a></p>
-	<p><a href="http://ihazcode.herokuapp.com/">My portfolio</a></p>
-	<div id="video-streaming" style="text-align:center;"><canvas id="canvas" style="width:800px;"></canvas></div>
-	<script src="browser.js"
-		data-canvas="canvas"
-		data-hls="//vodcdn.mobcrush.com/u/video/5716c5f2f81c73c7e68777a2/recording.mp4.m3u8">
+<head>
+	<base href="/">
+	<title sync-title="">Mobcrush</title>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="description" content="For the Love of Mobile Gaming - Live Streaming of Mobile Games and Mobile eSports for iPhone, iPad, Android, and tablets.">
+	<meta property="og:title" content="Mobcrush">
+	<meta property="og:site_name" content="Mobcrush">
+	<meta property="twitter.site" content="@mobcrush">
+	<meta property="twitter:title" content="Mobcrush">
+	<meta property="al:ios:url" content="mobcrush://feed/broadcasts">
+	<meta property="al:ios:app_name" content="Mobcrush-dev">
+	<meta property="al:android:url" content="mobcrush://feed/broadcasts">
+	<meta property="al:android:package" content="com.mobcrush.mobcrush">
+	<meta property="al:android:app_name" content="Mobcrush-dev">
+	<link rel="icon" href="//cdn.mobcrush.com/static/com/mobcrush/favicon.ico">
+	<link rel="apple-touch-icon" href="//cdn.mobcrush.com/static/com/mobcrush/images/mobcrush-icon.png">
+	<link rel="stylesheet" href="/styles/m.css">
+	<script>
+		window._rollbarConfig = {
+			accessToken: "4252708263344e3ca926d4904e86b076",
+			captureUncaught: true,
+			payload: {
+				environment: 'production'
+			}
+		};
+		! function (r) {
+			function o(e) {
+				if (t[e]) return t[e].exports;
+				var n = t[e] = {
+					exports: {},
+					id: e,
+					loaded: !1
+				};
+				return r[e].call(n.exports, n, n.exports, o), n.loaded = !0, n.exports
+			}
+			var t = {};
+			return o.m = r, o.c = t, o.p = "", o(0)
+		}([function (r, o, t) {
+			"use strict";
+			var e = t(1)
+				.Rollbar,
+				n = t(2);
+			_rollbarConfig.rollbarJsUrl = _rollbarConfig.rollbarJsUrl || "https://d37gvrvc0wt4s1.cloudfront.net/js/v1.7/rollbar.min.js";
+			var a = e.init(window, _rollbarConfig),
+				i = n(a, _rollbarConfig);
+			a.loadFull(window, document, !_rollbarConfig.async, _rollbarConfig, i)
+		}, function (r, o) {
+			"use strict";
+
+			function t() {
+				var r = window.console;
+				r && "function" == typeof r.log && r.log.apply(r, arguments)
+			}
+
+			function e(r, o) {
+				return o = o || t,
+					function () {
+						try {
+							return r.apply(this, arguments)
+						} catch (t) {
+							o("Rollbar internal error:", t)
+						}
+					}
+			}
+
+			function n(r, o, t) {
+				window._rollbarWrappedError && (t[4] || (t[4] = window._rollbarWrappedError), t[5] || (t[5] = window._rollbarWrappedError._rollbarContext), window._rollbarWrappedError = null), r.uncaughtError.apply(r, t), o && o.apply(window, t)
+			}
+
+			function a(r) {
+				this.shimId = ++p, this.notifier = null, this.parentShim = r, this.logger = t, this._rollbarOldOnError = null
+			}
+
+			function i(r) {
+				var o = a;
+				return e(function () {
+					if (this.notifier) return this.notifier[r].apply(this.notifier, arguments);
+					var t = this,
+						e = "scope" === r;
+					e && (t = new o(this));
+					var n = Array.prototype.slice.call(arguments, 0),
+						a = {
+							shim: t,
+							method: r,
+							args: n,
+							ts: new Date
+						};
+					return window._rollbarShimQueue.push(a), e ? t : void 0
+				})
+			}
+
+			function l(r, o) {
+				if (o.hasOwnProperty && o.hasOwnProperty("addEventListener")) {
+					var t = o.addEventListener;
+					o.addEventListener = function (o, e, n) {
+						t.call(this, o, r.wrap(e), n)
+					};
+					var e = o.removeEventListener;
+					o.removeEventListener = function (r, o, t) {
+						e.call(this, r, o && o._wrapped ? o._wrapped : o, t)
+					}
+				}
+			}
+			var p = 0;
+			a.init = function (r, o) {
+				var t = o.globalAlias || "Rollbar";
+				if ("object" == typeof r[t]) return r[t];
+				r._rollbarShimQueue = [], r._rollbarWrappedError = null, o = o || {};
+				var i = new a;
+				return e(function () {
+					if (i.configure(o), o.captureUncaught) {
+						i._rollbarOldOnError = r.onerror, r.onerror = function () {
+							var r = Array.prototype.slice.call(arguments, 0);
+							n(i, i._rollbarOldOnError, r)
+						};
+						var e, a, p = "EventTarget,Window,Node,ApplicationCache,AudioTrackList,ChannelMergerNode,CryptoOperation,EventSource,FileReader,HTMLUnknownElement,IDBDatabase,IDBRequest,IDBTransaction,KeyOperation,MediaController,MessagePort,ModalWindow,Notification,SVGElementInstance,Screen,TextTrack,TextTrackCue,TextTrackList,WebSocket,WebSocketWorker,Worker,XMLHttpRequest,XMLHttpRequestEventTarget,XMLHttpRequestUpload".split(",");
+						for (e = 0; e < p.length; ++e) a = p[e], r[a] && r[a].prototype && l(i, r[a].prototype)
+					}
+					return r[t] = i, i
+				}, i.logger)()
+			}, a.prototype.loadFull = function (r, o, t, n, a) {
+				var i = function () {
+						var o;
+						if (void 0 === r._rollbarPayloadQueue) {
+							var t, e, n, i;
+							for (o = new Error("rollbar.js did not load"); t = r._rollbarShimQueue.shift();)
+								for (n = t.args, i = 0; i < n.length; ++i)
+									if (e = n[i], "function" == typeof e) {
+										e(o);
+										break
+									}
+						}
+						"function" == typeof a && a(o)
+					},
+					l = !1,
+					p = o.createElement("script"),
+					u = o.getElementsByTagName("script")[0],
+					s = u.parentNode;
+				p.src = n.rollbarJsUrl, p.async = !t, p.onload = p.onreadystatechange = e(function () {
+					if (!(l || this.readyState && "loaded" !== this.readyState && "complete" !== this.readyState)) {
+						p.onload = p.onreadystatechange = null;
+						try {
+							s.removeChild(p)
+						} catch (r) {}
+						l = !0, i()
+					}
+				}, this.logger), s.insertBefore(p, u)
+			}, a.prototype.wrap = function (r, o) {
+				try {
+					var t;
+					if (t = "function" == typeof o ? o : function () {
+							return o || {}
+						}, "function" != typeof r) return r;
+					if (r._isWrap) return r;
+					if (!r._wrapped) {
+						r._wrapped = function () {
+							try {
+								return r.apply(this, arguments)
+							} catch (o) {
+								throw o._rollbarContext = t() || {}, o._rollbarContext._wrappedSource = r.toString(), window._rollbarWrappedError = o, o
+							}
+						}, r._wrapped._isWrap = !0;
+						for (var e in r) r.hasOwnProperty(e) && (r._wrapped[e] = r[e])
+					}
+					return r._wrapped
+				} catch (n) {
+					return r
+				}
+			};
+			for (var u = "log,debug,info,warn,warning,error,critical,global,configure,scope,uncaughtError".split(","), s = 0; s < u.length; ++s) a.prototype[u[s]] = i(u[s]);
+			r.exports = {
+				Rollbar: a,
+				_rollbarWindowOnError: n
+			}
+		}, function (r, o) {
+			"use strict";
+			r.exports = function (r, o) {
+				return function (t) {
+					if (!t && !window._rollbarInitialized) {
+						var e = window.RollbarNotifier,
+							n = o || {},
+							a = n.globalAlias || "Rollbar",
+							i = window.Rollbar.init(n, r);
+						i._processShimQueue(window._rollbarShimQueue || []), window[a] = i, window._rollbarInitialized = !0, e.processPayloads()
+					}
+				}
+			}
+		}]);
+
 	</script>
+	<script async="" src="//www.google-analytics.com/analytics.js"></script>
+	<script>
+		window.ga = window.ga || function () {
+			(ga.q = ga.q || [])
+			.push(arguments)
+		};
+		ga.l = +new Date;
+		ga('create', 'UA-57521889-3', 'auto');
+
+	</script>
+	<script>
+		(function (f, b) {
+			if (!b.__SV) {
+				var a, e, i, g;
+				window.mixpanel = b;
+				b._i = [];
+				b.init = function (a, e, d) {
+					function f(b, h) {
+						var a = h.split(".");
+						2 == a.length && (b = b[a[0]], h = a[1]);
+						b[h] = function () {
+							b.push([h].concat(Array.prototype.slice.call(arguments, 0)))
+						}
+					}
+					var c = b;
+					"undefined" !== typeof d ? c = b[d] = [] : d = "mixpanel";
+					c.people = c.people || [];
+					c.toString = function (b) {
+						var a = "mixpanel";
+						"mixpanel" !== d && (a += "." + d);
+						b || (a += " (stub)");
+						return a
+					};
+					c.people.toString = function () {
+						return c.toString(1) + ".people (stub)"
+					};
+					i = "disable track track_pageview track_links track_forms register register_once alias unregister identify name_tag set_config people.set people.set_once people.increment people.append people.union people.track_charge people.clear_charges people.delete_user".split(" ");
+					for (g = 0; g < i.length; g++) f(c, i[g]);
+					b._i.push([a, e, d])
+				};
+				b.__SV = 1.2;
+				a = f.createElement("script");
+				a.type = "text/javascript";
+				a.async = !0;
+				a.src = "undefined" !== typeof MIXPANEL_CUSTOM_LIB_URL ? MIXPANEL_CUSTOM_LIB_URL : "//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js";
+				e = f.getElementsByTagName("script")[0];
+				e.parentNode.insertBefore(a, e)
+			}
+		})(document, window.mixpanel || []);
+
+	</script>
+</head>
+
+<body ng-controller="AppController as vm" id="app" ng-class="vm.appClasses">
+	<div ng-include="'shared/notification/notify.html'" id="notify" ng-controller="NotifyController as vm"></div>
+	<div ng-include="'app/components/sidebar.html'" theater-listener="" id="sidebar" ng-controller="SidebarController as vm"></div>
+	<div id="main-content" class="container-fluid" theater-listener="" perfect-scrollbar="">
+		<div class="uiview" ui-view=""></div>
+	</div>
+	<div ng-include="'app/components/chat.html'" id="chat" ng-controller="ChatController as vm" ng-class="{'viewers': vm.tabs[1].active}"></div>
+	<script type="text/javascript">
+		window.mobcrushBootstrap = {
+			"android_package_name": "com.mobcrush.mobcrush",
+			"subscribeUrl": "subscribe.mobcrush.com",
+			"subscribePath": "/v1",
+			"subscribeStatus": {
+				"chatEnabled": true,
+				"liveEnabled": true
+			},
+			"enableCaptcha": true,
+			"subscribeLiveNamespace": "/live",
+			"subscribeChatNamespace": "/chat",
+			"firebaseHost": "mobcrush.firebaseIO.com",
+			"mixpanelApiToken": "b4d81ddd2b29e0400817b4062ffa0794",
+			"vodUrl": "http://vodcdn.mobcrush.com/u/video/%s/recording.mp4.m3u8",
+			"liveStreamUrl": "http://live-%s.mobcrush.com/hls/%s/%s.m3u8",
+			"videoSnapshotUrl": "https://cdn.mobcrush.com/u/video/%s/snapshot.jpg",
+			"videoCustomThumbnailUrl": "https://cdn.mobcrush.com/u/video/%s/thumbnail.jpg",
+			"defaultProfileLogoSmall": "http://cdn.mobcrush.com/static/images/default-profile-pic.png",
+			"cdnRoot": "//cdn.mobcrush.com",
+			"webHost": "www.mobcrush.com",
+			"analyticsUrl": "http://analytics.mobcrush.com",
+			"domainWhiteList": ["vimeo.com", "youtu.be", "youtube.com", "facebook.com", "google.com", "reddit.com", "twitter.com", "kickstarter.com", "1up.com", "destructoid.com", "engadget.com", "gametrailers.com", "gizmodo.com", "ign.com", "kotaku.com", "toucharcade.com", "mobcrush.com", "steamcommunity.com", "discord.gg", "instagram.com", "inpvp.net", "spotify.com", "imgur.com", "paypal.com", "patreon.com", "mob.cr", "livebnfd.com", "callofchampions.com", "roostr.video", "mobcrushland.com", "www.mobcrushland.com"],
+			"segmentKey": "1A5NusuuyUOWUUGC9mlA31GtKg4840Om",
+			"brewersUrl": "http://i-crush-on-mobcrush.herokuapp.com"
+		}
+
+	</script>
+	<script src="/scripts/m.js"></script>
 </body>
+
 </html>
