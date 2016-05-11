@@ -17,7 +17,6 @@ var server = http.createServer(function(req, res) {
 	if (controller && controller.length)
 		controller = controller[0];
 	var options = null;
-	console.log(controller);
 	switch (controller) {
 		case '/api':
 			options = url.parse('https://www.mobcrush.com' + req.url);
@@ -34,10 +33,7 @@ var server = http.createServer(function(req, res) {
 			options.headers['host'] = options.host;
 
 			var connector = (options.protocol == 'https:' ? https : http).request(options, function(serverResponse) {
-				console.log('<== Received res for', serverResponse.statusCode, reqUrl);
-				console.log('\t-> Request Headers: ', options);
-				console.log(' ');
-				console.log('\t-> Response Headers: ', serverResponse.headers);
+				// Received res from server
 
 				serverResponse.pause();
 
@@ -61,7 +57,7 @@ var server = http.createServer(function(req, res) {
 					case 303:
 						serverResponse.statusCode = 303;
 						serverResponse.headers['location'] = 'http://localhost:'+PORT+'/'+serverResponse.headers['location'];
-						console.log('\t-> Redirecting to ', serverResponse.headers['location']);
+						// Redirecting to serverResponse.headers['location']
 						res.writeHeader(serverResponse.statusCode, serverResponse.headers);
 						serverResponse.pipe(res, {end:true});
 						serverResponse.resume();
@@ -78,14 +74,12 @@ var server = http.createServer(function(req, res) {
 						break;
 				}
 
-				console.log('\n\n');
 			});
 			req.pipe(connector, {end:true});
 			req.resume();
 
 			break;
 		default:
-			console.log('serveStatic');
 			serveStatic(req, res, done);
 	}
 })

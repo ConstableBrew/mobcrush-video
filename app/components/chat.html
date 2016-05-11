@@ -1,0 +1,30 @@
+<!-- $templateCache.put("app/components/chat.html", -->
+
+<div class=\"chat-notify\">
+	<div ng-class=\"[\'alert\', \'alert-\'+n.cssClass]\" ng-repeat=\"n in vm.notifications\">{{n.message}}
+		<button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\" ng-click=\"vm.remove(n)\" ng-if=\"::n.allowClose\"><span aria-hidden=\"true\" ng-if=\"::n.allowClose\">&times;</span>
+		</button>
+	</div>
+</div>
+<uib-tabset class=\"chat-tabs\" active=\"vm.activeTab\">
+	<uib-tab ng-repeat=\"tab in vm.tabs\" index=\"$index + 1\" heading=\"{{::tab.title}}\" ng-click=\"vm.setFocus()\"></uib-tab>
+</uib-tabset>
+<div class=\"chat-scroll\" perfect-scrollbar=\"\" scroll-glue=\"vm.messages\" ng-show=\"vm.activeTab === 1\">
+	<div ng-repeat=\"m in vm.messages\" ng-hide=\"vm.shouldHideMessage(m)\" class=\"chat-message\">
+		<div ng-click=\"::vm.showUserOptions($event, m)\" class=\"profile-logo\" role=\"button\" ng-style=\"::{\'background-image\': \'url(\' + vm.formatUrl(m.profileLogoSmall ? m.profileLogoSmall : vm.config.defaultProfileLogoSmall) + \')\'}\"></div>
+		<div class=\"user-message\"><span ng-click=\"::vm.showUserOptions($event, m)\" class=\"username\" role=\"button\" ng-class=\"::{\'moderator\': m.role == \'moderator\', \'broadcaster\': m.role == \'broadcaster\', \'admin\': m.role == \'admin\'}\">{{::m.username}}<span ng-show=\"::m.subtitle\" class=\"user-subtitle\">&nbsp;/ {{::m.subtitle}}</span></span>
+			<br><span class=\"message\" ng-hide=\"m.hidden\" ng-bind-html=\"::vm.formatMessage(m)\"></span> <span class=\"message hidden\" ng-show=\"m.hidden\">Message removed</span> <span class=\"message muted\" ng-show=\"m.triggeredMute\"><br>User was muted for this message</span>
+			<br>
+		</div>
+	</div>
+</div>
+<div class=\"chat-scroll\" perfect-scrollbar=\"\" ng-show=\"vm.activeTab === 2\">
+	<div ng-repeat=\"m in vm.users | orderBy:[vm.sortViewerList,\'username\']\" ng-show=\"m.username\" class=\"chat-message viewer-list\">
+		<div role=\"button\" ng-click=\"::vm.showUserOptions($event, m)\" class=\"profile-logo\" ng-style=\"::{\'background-image\': \'url(\' + vm.formatUrl(m.profileLogoSmall ? m.profileLogoSmall : vm.config.defaultProfileLogoSmall) + \')\'}\"></div><span ng-click=\"::vm.showUserOptions($event, m)\" role=\"button\" class=\"username\" ng-class=\"{\'moderator\': m.role == \'moderator\', \'broadcaster\': m.role == \'broadcaster\', \'admin\': m.role == \'admin\'}\">{{::m.username}} <span ng-show=\"::m.subtitle\" class=\"user-subtitle\">&nbsp;/ {{::m.subtitle}}</span></span>
+	</div>
+</div>
+<div class=\"chat-box\" ng-show=\"vm.activeTab === 1\">
+	<textarea ng-keydown=\"vm.sendMessage($event)\" ng-model=\"vm.message\" maxlength=\"200\" focus-on=\"focus-input\" ng-attr-placeholder=\"{{vm.placeholder}}\" ng-disabled=\"!vm.sendEnabled\"></textarea>
+	<div class=\"slow-mode-btn btn\" ng-show=\"vm.canModerate()\" ng-click=\"vm.toggleChatSlowMode()\"><img ng-src=\"{{(vm.chatSlowModeEnabled ? vm.slowModeEnabledIcon : vm.slowModeDisabledIcon)}}\">
+	</div>
+</div>

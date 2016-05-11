@@ -1,0 +1,15 @@
+<!-- 
+New - made by Brewer
+$templateCache.put("app/components/chatMessages.html"
+
+Notes...
+angular
+.module('web')
+.controller('ChatController', ChatController);
+
+
+on broadcastTile ng-mouseenter=\"::vm.loadChat(vm.tile.channelUser.chatRoom)\"
+
+On broadcastTile directive for this chat: ng-init=\"roomId=vm.tile.channelUser.chatRoom\"
+-->
+<div class=\"chat-scroll\" perfect-scrollbar=\"\" scroll-glue=\"vm.messages\" ng-controller=\"ChatController as vm\">{{::roomId}}<div ng-repeat=\"m in vm.messages\" ng-hide=\"vm.shouldHideMessage(m)\" class=\"chat-message\"><div class=\"user-game\" ng-hide=\"m.hidden\"><span class=\"inner\"><span class=\"user-part\">{{::m.username}}</span>&nbsp;/&nbsp;<span class=\"message\" ng-bind-html=\"::vm.formatMessage(m)\"></span></span></div></div></div>
