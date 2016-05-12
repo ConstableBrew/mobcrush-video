@@ -4194,9 +4194,6 @@ body.loaded #main-content,.mob-content {
 	background-color: #161616
 }
 
-.broadcastTile .image:hover .overlay {
-	transform: translateY(-120px)
-}
 
 .broadcastTile .info {
 	height: 30px;
@@ -4259,6 +4256,34 @@ body.loaded #main-content,.mob-content {
 .broadcastTile:hover {
 	text-decoration: none
 }
+
+
+.broadcastTile .chat-scroll {
+	height: 0;
+}
+.broadcastTile .image.live-chat:hover .overlay {
+	transform: translateY(-120px)
+}
+.broadcastTile .image.live-chat:hover .chat-scroll {
+	overflow: visible !important;
+}
+.broadcastTile .chat-message .user-game {
+	background-color: rgba(0,0,0,0.8);
+}
+.broadcastTile .chat-message {
+	padding: 0;
+	margin: 0;
+	border-bottom: none;
+}
+.broadcastTile .chat-message .user-part {
+	font-size: 10px;
+}
+
+.broadcastTile .chat-message .message {
+	font-size: 11px;
+}
+
+
 
 .chat-box {
 	-webkit-flex: 0 0 100px;

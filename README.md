@@ -1,6 +1,24 @@
-# mobcrush-video
+# i-crush-on-mobcrush
 
-Lets try and convert mpeg-ts chunks on the fly!
+This was a short project to hack mobcrush's website. On any broadcast thumbnail/tile, I added a quick view to the ongoing user chat. Naturally a user will move their mouse over the tile when browsing for a stream to watch. As they do this, the most recent chat messages will slide up from the bottom, giving the user an idea of the engagement within that channel.
+
+[Broadcast Tile Chat](http://i-crush-on-mobcrush.herokuapp.com/images/tilechat.png)
+
+* Created a proxy server to pass requests from the client directly on to mobcrush.com. This way I only had to host the few files that were directly relevant to my hack. (https://github.com/nodejitsu/node-http-proxy)
+* Created a template "app/components/chatMessages.html". This is a light weight version of the full chat ("app/components/chat.html"), showing only the 5 most recent messages.
+* Modified "app/components/broadcastTile.html" to render the chatMessages template when the stream is live.
+* Added a some css to make the chat messages show or hide on hover/mouseout for each live channel.
+* Multiple chat rooms now all initialize at the same time when the page is loaded (one room per broadcast channel).
+* Promisified the chat authenticate method so multiple instances attempting to initialize will share the same single auth token when it is ready.
+
+Things I learned:
+* Overall this was a great refresher on Angular.
+* Debugging Angular scope - Pick an element in the HTML panel of the developer tools and type this in the console: `angular.element($0).scope()`
+
+
+# /video_conversion.html
+
+[Convert mpeg-ts chunks on the fly!](http://i-crush-on-mobcrush.herokuapp.com/video_conversion.html)
 
 
 JWPlayer is the standard in playing videos on the web. <i>But</i>, sometimes it is fun to explore other options. In this demo, I use the nifty MPEGTS-to-MP4 converter, a pure JavaScript library that converts MPEG-TS video chunks into MPEG-4 and playing them.

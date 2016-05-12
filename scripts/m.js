@@ -72860,6 +72860,11 @@ is set to `true`. The parse error is stored in `ngModel.$error.parse`.
 				.module('web')
 				.controller('ChatController', ChatController);
 				
+				var _authData = null;
+				var _firebaseAuth = null;
+				var _mentionRegex = null;
+				var _isAnonymous = true;
+
 				/* @ngInject */
 				function ChatController(// jshint ignore:line
 				$scope, data, $firebaseAuth, utils, focus, $firebaseObject, 
@@ -72868,11 +72873,9 @@ is set to `true`. The parse error is stored in `ngModel.$error.parse`.
 				) {
 
 					var MAX_VIEWER_LIST_QUERY_COUNT = 200;
-					var MAX_MESSAGES = 200;
 					
-					var _roomId = null ;
-					var _authData = null ;
-					var _firebase = null ;
+					var _max_messages = 200;
+					var _firebase = null ;var _roomId = null ;
 					var _joinedUsers = {};
 					var _userRelatedWatches = [];
 					var _nonuserRelatedWatches = [];
@@ -72889,10 +72892,10 @@ is set to `true`. The parse error is stored in `ngModel.$error.parse`.
 					var _limitLastCheck = new Date().getTime();
 					var _joined = false;
 					var _enableSetFocus = !user.mobile;
-					var _mentionRegex = null ;
 					var firstModeratorCheck = true;
 					var firstSlowModeCheck = true;
 					var vm = this;
+
 					vm.placeholder = '';
 					vm.sendMessage = sendMessage;
 					vm.messages = null ;
@@ -72940,8 +72943,8 @@ is set to `true`. The parse error is stored in `ngModel.$error.parse`.
 						if (chatOptions) {
 							oldRoomId = _roomId;
 							_roomId = chatOptions.roomId || _roomId;
-							_enableSetFocus = _enableSetFocus && (!chatOptions.disableSetFocus)
-							MAX_MESSAGES = chatOptions.max_messages || MAX_MESSAGES
+							_enableSetFocus = _enableSetFocus && (!chatOptions.disableSetFocus);
+							_max_messages = chatOptions.max_messages || _max_messages;
 						}
 						if (oldRoomId && oldRoomId !== _roomId) {
 							leaveRoom();
@@ -72949,7 +72952,7 @@ is set to `true`. The parse error is stored in `ngModel.$error.parse`.
 						
 						_firebase = _firebase || new Firebase(config.firebaseHost);
 						if (!_authData)
-							return authenticate()
+							return authenticate();
 						
 						vm.sendEnabled = false;
 						vm.chatReady = false;
@@ -73027,7 +73030,7 @@ is set to `true`. The parse error is stored in `ngModel.$error.parse`.
 						if (!vm.messages) {
 							vm.messages = $firebaseArray(_firebase.child('room-messages')
 							.child(_roomId)
-							.limitToLast(MAX_MESSAGES)
+							.limitToLast(_max_messages)
 							)
 							_nonuserRelatedWatches.push(vm.messages)
 						}
@@ -73739,7 +73742,8 @@ is set to `true`. The parse error is stored in `ngModel.$error.parse`.
 						if (!_joined)
 							return;
 						clearWatchArray(_userRelatedWatches);
-						_mentionRegex = null ;
+						_mentionRegex = null;
+						_firebaseAuth = null;
 						vm.isAdmin = false;
 						vm.isModerator = false;
 						firstModeratorCheck = true;
@@ -73748,50 +73752,65 @@ is set to `true`. The parse error is stored in `ngModel.$error.parse`.
 					}
 					
 					function authenticate() {
-						if (user.isSet()) {
-							data.firebase.getAuthToken().then(function(result) {
-								if (result.token) {
-									authWithToken(result.token)
+						if (!_firebaseAuth) {
+							if (user.isSet()) {
+								_firebaseAuth = data.firebase.getAuthToken()
+								.then(authWithToken);
+							} else {
+								_firebaseAuth = Promise.resolve()
+								.then(authAnonymously);
+							}
+						}
+						_firebaseAuth.then(resolveAuth)
+						.then(function(){
+							$scope.$broadcast('authenticated');
+						});
+					}
+
+					function authWithToken(token) {
+						return new Promise(function(resolve){
+							_firebase.authWithCustomToken(token, function(error, authData) {
+								if (error) {
+									authAnonymously().then(resolve);
 								} else {
-									authAnonymously()
+									_isAnonymous = false;
+									_authData = authData;
+									resolve();
 								}
 							})
-						} else
-							authAnonymously();
-					}
-					
-					function authWithToken(token) {
-						_firebase.authWithCustomToken(token, function(error, authData) {
-							if (error) {
-								authAnonymously();
-							} else {
-								_authData = authData;
-								vm.isAnonymous = false;
-								// Setup mentions
-								var username = utils.escapeRegex(user.get().username);
-								_mentionRegex = new RegExp('(^|[^a-zA-Z0-9])(@?' + username + ')([^a-zA-Z0-9]|$)','i');
-								// Check if user is a global moderator.
-								_firebase.child('global-moderators')
-								.child(_authData.uid)
-								.once('value', function(snapshot) {
-									var val = snapshot.val()
-									vm.isAdmin = val && !!val[_authData.uid];
-									$scope.$broadcast('authenticated');
-								})
-							}
 						})
 					}
 					
 					function authAnonymously() {
-						_firebase.authAnonymously(function(error, authData) {
-							if (error) {
-								throw error
-							} else {
-								_authData = authData;
-								vm.isAnonymous = true;
-								$scope.$broadcast('authenticated');
-							}
+						return new Promise(function(resolve){
+							_firebase.authAnonymously(function(error, authData) {
+								if (error) {
+									throw error
+								} else {
+									_isAnonymous = true;
+									_authData = authData;
+									resolve();
+								}
+							});	
 						});
+					}
+
+					function resolveAuth(){
+						if (_isAnonymous){
+							vm.isAnonymous = true;
+						} else {
+							vm.isAnonymous = false;
+							// Setup mentions
+							var username = utils.escapeRegex(user.get().username);
+							_mentionRegex = new RegExp('(^|[^a-zA-Z0-9])(@?' + username + ')([^a-zA-Z0-9]|$)','i');
+							// Check if user is a global moderator.
+							_firebase.child('global-moderators')
+							.child(_authData.uid)
+							.once('value', function(snapshot) {
+								var val = snapshot.val()
+								vm.isAdmin = val && !!val[_authData.uid];
+							})
+						}
 					}
 					
 					// // *** Debug ***
@@ -73871,14 +73890,6 @@ is set to `true`. The parse error is stored in `ngModel.$error.parse`.
 							return;
 						vm.tile = $scope.broadcast;
 					}
-
-					// BREWER
-					// vm.loadChat = loadChat;
-					// function loadChat(roomId){
-					// 	if (!roomId)
-					// 		return;
-					// 	$scope.$emit('load-chat', {roomId: roomId});
-					// }
 				}
 				BroadcastTileController.$inject = ["$scope", "$anchorScroll", "utils", "config", "$state"];
 			})();
@@ -75372,8 +75383,8 @@ is set to `true`. The parse error is stored in `ngModel.$error.parse`.
 			
 			angular.module("web").run(["$templateCache", function($templateCache) {
 				$templateCache.put("app/components/auth.html", "<div class=\"modal-header\" ng-show=\"vm.mode==\'login\' || vm.mode==\'signup\'\"></div><div class=\"modal-body\"><form name=\"vm.form\" ng-if=\"!success && vm.mode==\'login\'\" novalidate=\"\"><div class=\"form-group\"><input name=\"username\" autofocus=\"\" required=\"\" type=\"username\" ng-model=\"vm.username\" class=\"form-control\" placeholder=\"Username\"></div><div class=\"form-group\"><input name=\"password\" required=\"\" type=\"password\" ng-model=\"vm.password\" class=\"form-control\" autocomplete=\"off\" placeholder=\"Password\"></div><input type=\"submit\" class=\"btn btn-primary\" ng-class=\"{\'all-valid\': vm.form.$valid}\" ng-click=\"vm.login()\" value=\"Log in\"></form><form name=\"vm.signup\" ng-if=\"!success && vm.mode==\'signup\'\" novalidate=\"\"><div class=\"form-group\" ng-class=\"{\'has-error\': (vm.signupClicked && vm.signup.username.$invalid) || !!vm.usernameErrorMsg}\"><input name=\"username\" maxlength=\"16\" autofocus=\"\" required=\"\" type=\"text\" ng-model=\"vm.username\" ng-blur=\"vm.validateField(\'username\', vm.username)\" class=\"form-control\" placeholder=\"Username\"><div class=\"error-message\">{{vm.usernameErrorMsg}}</div></div><div class=\"form-group\" ng-class=\"{\'has-error\': (vm.signupClicked && vm.signup.password.$invalid) || !!vm.passwordErrorMsg }\"><input name=\"password\" maxlength=\"35\" required=\"\" type=\"password\" ng-model=\"vm.password\" class=\"form-control\" placeholder=\"Password\" ng-blur=\"vm.validateField(\'password\', vm.password)\"><div class=\"error-message\">{{vm.passwordErrorMsg}}</div></div><div class=\"form-group\" ng-class=\"{\'has-error\': (vm.signupClicked && vm.signup.email.$invalid) || !!vm.emailErrorMsg}\"><input name=\"email\" maxlength=\"255\" required=\"\" type=\"text\" ng-model=\"vm.email\" ng-blur=\"vm.validateField(\'email\', vm.email)\" class=\"form-control\" placeholder=\"Email\"><div class=\"error-message\">{{vm.emailErrorMsg}}</div></div><div class=\"age-verification\" ng-class=\"{\'has-error\': vm.signupClicked && !vm.birthdate || !!vm.birthdateErrorMsg}\"><div class=\"birthday\">Birthday</div><input date-dropdowns=\"\" validate=\"vm.validateField(\'birthdate\', vm.birthdate)\" ng-model=\"vm.birthdate\" class=\"row\" day-class=\"selector form-control\" month-class=\"month-selector selector form-control\" year-class=\"selector form-control\"><div class=\"error-message\">{{vm.birthdateErrorMsg}}</div></div><div class=\"form-group\" ng-if=\"vm.enableCaptcha\"><div id=\"recaptcha\" grecaptcha=\"\" ng-model=\"vm.captcha\"></div></div><div class=\"tos\">By clicking Create Account, you are indicating that you have read and agree to the <a href=\"/pages/tos\" target=\"_blank\">Terms of Service</a>.</div><input type=\"submit\" class=\"btn btn-primary signup\" ng-class=\"{\'all-valid\': vm.signupFormValid}\" ng-click=\"vm.signupSubmit()\" value=\"Create Account\"></form><div ng-if=\"!success && vm.mode==\'signupcomplete\'\" class=\"verification\"><div class=\"header header-light\">Thanks for joining Mobcrush!</div><div class=\"body-light padding\"><div>A verification email has been sent to:</div><div class=\"email\">{{vm.email}}</div><div>Please verify your email to enable full app access.</div><div class=\"footer\"><button class=\"btn-primary button\" ng-click=\"$dismiss()\">Done</button></div></div></div><div ng-if=\"!success && vm.mode==\'verifycomplete\'\" class=\"verification\"><div class=\"header\">Thank you!</div><div class=\"body\">Your email has been verified.</div><div class=\"footer\"><button class=\"btn-primary button\" ng-click=\"$dismiss()\">Ok</button></div></div><div ng-if=\"!success && vm.mode==\'verifyemailerror\'\" class=\"verification\"><div class=\"header\">Oops!</div><div class=\"body\">It looks like that verification link has expired or is invalid.</div><div class=\"footer\"><button class=\"btn-primary button\" ng-show=\"vm.user.isSet()\" ng-click=\"vm.resendVerificationEmail()\">Resend verification email</button> <button class=\"btn-primary button\" ng-show=\"!vm.user.isSet()\" ng-click=\"$dismiss()\">Ok</button></div></div><div ng-if=\"!success && vm.mode==\'verificationincomplete\'\" class=\"verification\"><div class=\"header header-medium\">Please verify your email</div><div class=\"body\">In order to access this feature, please verify your email address.</div><div class=\"footer\"><button class=\"btn-primary button\" ng-click=\"vm.resendVerificationEmail()\">Resend verification email</button></div></div></div><div class=\"modal-footer\" ng-show=\"vm.mode==\'login\' || vm.mode==\'signup\'\"><a href=\"\" ng-click=\"vm.toggleMode()\" class=\"toggle-view\"><span ng-show=\"vm.mode==\'login\'\">or Sign up</span> <span ng-show=\"vm.mode==\'signup\'\">or Log in</span></a>| <a ng-href=\"/pages/passwordreset\" ng-click=\"$dismiss()\" class=\"go-reset\">Forgot your password?</a></div>");
-				$templateCache.put("app/components/broadcastTile.html", "<a class=\"col-xs-12 col-sm-6 col-md-4 col-lg-3 broadcastTile\" href=\"#\" ng-click=\"vm.goToChannel(list.filter.category)\" ng-controller=\"BroadcastTileController as vm\"><div class=\"image\" ng-style=\"::{\'background-image\': \'url(\\\'\' + vm.getBroadcastSnapshotUrl(vm.tile) + \'\\\')\',}\"><div class=\"live\" ng-if=\"::vm.tile.isLive\">LIVE</div><div class=\"overlay\"><div class=\"user-game\"><span class=\"inner\"><span class=\"user-part\">{{::vm.tile.user.username}}</span>&nbsp;/&nbsp;<span ng-if=\"::vm.tile.game.name\">{{::vm.tile.game.name}}</span></span></div><div class=\"title\" ng-if=\"::vm.tile.title\"><span class=\"inner\">{{::vm.tile.title}}</span></div><ng-include ng-if=\"::vm.tile.isLive\" src=\"\'app/components/chatMessages.html\'\" ng-init=\"roomId=vm.tile.channelUser.chatRoom\"></ng-include></div></div><div class=\"info\"><ng-pluralize ng-if=\"::vm.tile.isLive && !vm.showLiveViewerCounts\" count=\"::vm.tile.totalViews\" when=\"{\'0\': \'0 VIEWS\', \'one\': \'1 VIEW\', \'other\': \'{}VIEWS\'}\"></ng-pluralize><ng-pluralize ng-if=\"::vm.tile.isLive && vm.showLiveViewerCounts\" count=\"::vm.tile.currentViewers\" when=\"{\'0\': \'0 VIEWERS\', \'one\': \'1 VIEWER\', \'other\': \'{}VIEWERS\'}\"></ng-pluralize><ng-pluralize ng-if=\"::!vm.tile.isLive\" count=\"::vm.tile.totalViews\" when=\"{\'0\': \'0 VIEWS\', \'one\': \'1 VIEW\', \'other\': \'{}VIEWS\'}\"></ng-pluralize><span class=\"info-divider\">&nbsp;|&nbsp;</span> ♥{{::vm.tile.likes}}</div></a>");
-				$templateCache.put("app/components/chatMessages.html", "<div class=\"chat-scroll\" perfect-scrollbar=\"\" scroll-glue=\"vm.messages\" ng-controller=\"ChatController as vm\" ng-init=\"vm.joinRoom({roomId:roomId,max_messages:5})\">{{::roomId}}<div ng-repeat=\"m in vm.messages\" ng-hide=\"vm.shouldHideMessage(m)\" class=\"chat-message\"><div class=\"user-game\" ng-hide=\"m.hidden\"><span class=\"inner\"><span class=\"user-part\">{{::m.username}}</span>&nbsp;/&nbsp;<span class=\"message\" ng-bind-html=\"::vm.formatMessage(m)\"></span></span></div></div></div>");
+				$templateCache.put("app/components/broadcastTile.html", "<a class=\"col-xs-12 col-sm-6 col-md-4 col-lg-3 broadcastTile\" href=\"#\" ng-click=\"vm.goToChannel(list.filter.category)\" ng-controller=\"BroadcastTileController as vm\"><div class=\"image\" ng-class=\"{'live-chat': vm.tile.isLive}\" ng-style=\"::{\'background-image\': \'url(\\\'\' + vm.getBroadcastSnapshotUrl(vm.tile) + \'\\\')\',}\"><div class=\"live\" ng-if=\"::vm.tile.isLive\">LIVE</div><div class=\"overlay\"><div class=\"user-game\"><span class=\"inner\"><span class=\"user-part\">{{::vm.tile.user.username}}</span>&nbsp;/&nbsp;<span ng-if=\"::vm.tile.game.name\">{{::vm.tile.game.name}}</span></span></div><div class=\"title\" ng-if=\"::vm.tile.title\"><span class=\"inner\">{{::vm.tile.title}}</span></div><ng-include ng-if=\"::vm.tile.isLive\" src=\"\'app/components/chatMessages.html\'\" ng-init=\"roomId=vm.tile.channelUser.chatRoom\"></ng-include></div></div><div class=\"info\"><ng-pluralize ng-if=\"::vm.tile.isLive && !vm.showLiveViewerCounts\" count=\"::vm.tile.totalViews\" when=\"{\'0\': \'0 VIEWS\', \'one\': \'1 VIEW\', \'other\': \'{}VIEWS\'}\"></ng-pluralize><ng-pluralize ng-if=\"::vm.tile.isLive && vm.showLiveViewerCounts\" count=\"::vm.tile.currentViewers\" when=\"{\'0\': \'0 VIEWERS\', \'one\': \'1 VIEWER\', \'other\': \'{}VIEWERS\'}\"></ng-pluralize><ng-pluralize ng-if=\"::!vm.tile.isLive\" count=\"::vm.tile.totalViews\" when=\"{\'0\': \'0 VIEWS\', \'one\': \'1 VIEW\', \'other\': \'{}VIEWS\'}\"></ng-pluralize><span class=\"info-divider\">&nbsp;|&nbsp;</span> ♥{{::vm.tile.likes}}</div></a>");
+				$templateCache.put("app/components/chatMessages.html", "<div class=\"chat-scroll\" perfect-scrollbar=\"\" scroll-glue=\"vm.messages\" ng-controller=\"ChatController as vm\" ng-init=\"vm.joinRoom({roomId:roomId,max_messages:5})\"><div ng-repeat=\"m in vm.messages\" ng-hide=\"vm.shouldHideMessage(m)\" class=\"chat-message\"><div class=\"user-game\" ng-hide=\"m.hidden\"><span class=\"inner\"><span class=\"user-part\">{{::m.username}}</span>&nbsp;&nbsp;<span class=\"message\" ng-bind-html=\"::vm.formatMessage(m)\"></span></span></div></div></div>");
 				$templateCache.put("app/components/chat.html", "<div class=\"chat-notify\"><div ng-class=\"[\'alert\', \'alert-\'+n.cssClass]\" ng-repeat=\"n in vm.notifications\">{{n.message}} <button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\" ng-click=\"vm.remove(n)\" ng-if=\"::n.allowClose\"><span aria-hidden=\"true\" ng-if=\"::n.allowClose\">&times;</span></button></div></div><uib-tabset class=\"chat-tabs\" active=\"vm.activeTab\"><uib-tab ng-repeat=\"tab in vm.tabs\" index=\"$index + 1\" heading=\"{{::tab.title}}\" ng-click=\"vm.setFocus()\"></uib-tab></uib-tabset><div class=\"chat-scroll\" perfect-scrollbar=\"\" scroll-glue=\"vm.messages\" ng-show=\"vm.activeTab === 1\"><div ng-repeat=\"m in vm.messages\" ng-hide=\"vm.shouldHideMessage(m)\" class=\"chat-message\"><div ng-click=\"::vm.showUserOptions($event, m)\" class=\"profile-logo\" role=\"button\" ng-style=\"::{\'background-image\': \'url(\' + vm.formatUrl(m.profileLogoSmall ? m.profileLogoSmall : vm.config.defaultProfileLogoSmall) + \')\'}\"></div><div class=\"user-message\"><span ng-click=\"::vm.showUserOptions($event, m)\" class=\"username\" role=\"button\" ng-class=\"::{\'moderator\': m.role == \'moderator\', \'broadcaster\': m.role == \'broadcaster\', \'admin\': m.role == \'admin\'}\">{{::m.username}}<span ng-show=\"::m.subtitle\" class=\"user-subtitle\">&nbsp;/ {{::m.subtitle}}</span></span><br><span class=\"message\" ng-hide=\"m.hidden\" ng-bind-html=\"::vm.formatMessage(m)\"></span> <span class=\"message hidden\" ng-show=\"m.hidden\">Message removed</span> <span class=\"message muted\" ng-show=\"m.triggeredMute\"><br>User was muted for this message</span><br></div></div></div><div class=\"chat-scroll\" perfect-scrollbar=\"\" ng-show=\"vm.activeTab === 2\"><div ng-repeat=\"m in vm.users | orderBy:[vm.sortViewerList,\'username\']\" ng-show=\"m.username\" class=\"chat-message viewer-list\"><div role=\"button\" ng-click=\"::vm.showUserOptions($event, m)\" class=\"profile-logo\" ng-style=\"::{\'background-image\': \'url(\' + vm.formatUrl(m.profileLogoSmall ? m.profileLogoSmall : vm.config.defaultProfileLogoSmall) + \')\'}\"></div><span ng-click=\"::vm.showUserOptions($event, m)\" role=\"button\" class=\"username\" ng-class=\"{\'moderator\': m.role == \'moderator\', \'broadcaster\': m.role == \'broadcaster\', \'admin\': m.role == \'admin\'}\">{{::m.username}} <span ng-show=\"::m.subtitle\" class=\"user-subtitle\">&nbsp;/ {{::m.subtitle}}</span></span></div></div><div class=\"chat-box\" ng-show=\"vm.activeTab === 1\"><textarea ng-keydown=\"vm.sendMessage($event)\" ng-model=\"vm.message\" maxlength=\"200\" focus-on=\"focus-input\" ng-attr-placeholder=\"{{vm.placeholder}}\" ng-disabled=\"!vm.sendEnabled\"></textarea><div class=\"slow-mode-btn btn\" ng-show=\"vm.canModerate()\" ng-click=\"vm.toggleChatSlowMode()\"><img ng-src=\"{{(vm.chatSlowModeEnabled ? vm.slowModeEnabledIcon : vm.slowModeDisabledIcon)}}\"></div></div>");
 				$templateCache.put("app/components/dialog.html", "<div class=\"modal-header\"><label for=\"\" class=\"modal-name\" ng-bind=\"vm.headerText\"></label></div><div class=\"modal-body\"><p ng-bind=\"vm.bodyText\"></p></div><div class=\"modal-footer\"><button class=\"btn btn-primary signup\" ng-click=\"vm.ok()\" ng-bind=\"vm.okText\"></button> <button class=\"btn btn-primary signup\" ng-click=\"vm.cancel()\" ng-bind=\"vm.cancelText\"></button></div>");
 				$templateCache.put("app/components/games-search.html", "<div class=\"games-search\"><div class=\"form-group game_search-container\"><div class=\"btn-group col-xs-12 col-md-6 clearfix\"><i class=\"find-icon\"></i><form ng-submit=\"vm.goToFirstResult()\" autocomplete=\"off\"><input class=\"form-control\" name=\"game_search\" typeahead-on-select=\"vm.typeAheadSelect($item, $model, $label)\" ng-model-options=\"{ updateOn: \'default blur\', debounce: { \'default\': 300, \'blur\': 0 } }\" ng-model=\"vm.search\" placeholder=\"Search Games\" type=\"text\" uib-typeahead=\"game.name for game in vm.searchForTypeAhead($viewValue)\" typeahead-template-url=\"games-search.tpl\"></form><i class=\"icon-close\" ng-class=\"{\'icon-show\': !!vm.search}\" ng-click=\"vm.search=\'\'\"></i></div></div><script type=\"text/ng-template\" id=\"games-search.tpl\"><a class=\"games-search-match\"> <div class=\"broadcast_count\"> <span ng-bind=\"match.model.broadcastCount\"></span> <span class=\"description\">broadcasts</span> </div> <img src=\"{{match.model.icon}}\" fallback-src=\"https://mobcrush.s3.amazonaws.com/static/images/default-profile-pic.png\" alt=\"\" width=\"40px\"/> <div ng-bind=\"match.label\" class=\"typeahead-title\"></div> </a></script><div ui-view=\"\"></div></div>");

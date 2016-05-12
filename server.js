@@ -1,10 +1,8 @@
 var port = process.env.PORT || 3000;
 var http = require('http');
 var https = require('https');
-// var httpProxy = require('http-proxy');
 var url  = require('url');
 
-// var proxy = httpProxy.createProxyServer({});
 var finalhandler = require('finalhandler');
 var serveStatic = require('serve-static')('./');
 
