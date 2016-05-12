@@ -1,8 +1,8 @@
 # i-crush-on-mobcrush
 
-This was a short project to hack mobcrush's website. On any broadcast thumbnail/tile, I added a quick view to the ongoing user chat. Naturally a user will move their mouse over the tile when browsing for a stream to watch. As they do this, the most recent chat messages will slide up from the bottom, giving the user an idea of the engagement within that channel.
+This was a short project to hack mobcrush's website. When the user hovers over a broadcast tile, the most recent chat messages will slide up from the bottom, giving the user an idea of the engagement within that channel.
 
-[Broadcast Tile Chat](http://i-crush-on-mobcrush.herokuapp.com/images/tilechat.png)
+![Broadcast Tile Chat](http://i-crush-on-mobcrush.herokuapp.com/images/tilechat.png "Broadcast Tile Chat")
 
 * Created a proxy server to pass requests from the client directly on to mobcrush.com. This way I only had to host the few files that were directly relevant to my hack. (https://github.com/nodejitsu/node-http-proxy)
 * Created a template "app/components/chatMessages.html". This is a light weight version of the full chat ("app/components/chat.html"), showing only the 5 most recent messages.
@@ -17,7 +17,7 @@ Things I learned:
 
 All code for this hack is available on my github. The salient files are located [here](https://github.com/ConstableBrew/mobcrush-video/tree/master/app).
 
-# /video_conversion.html
+# HTML5 Video and MPEG-TS
 
 [Convert mpeg-ts chunks on the fly!](http://i-crush-on-mobcrush.herokuapp.com/video_conversion.html)
 
