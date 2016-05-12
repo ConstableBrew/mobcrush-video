@@ -2,6 +2,8 @@
 
 This was a short project to hack mobcrush's website. When the user hovers over a broadcast tile, the most recent chat messages will slide up from the bottom, giving the user an idea of the engagement within that channel.
 
+[Live Demo](http://i-crush-on-mobcrush.herokuapp.com)
+
 ![Broadcast Tile Chat](http://i-crush-on-mobcrush.herokuapp.com/images/tilechat.png "Broadcast Tile Chat")
 
 * Created a proxy server to pass requests from the client directly on to mobcrush.com. This way I only had to host the few files that were directly relevant to my hack. (https://github.com/nodejitsu/node-http-proxy)
