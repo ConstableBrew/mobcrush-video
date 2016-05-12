@@ -15,6 +15,7 @@ Things I learned:
 * Overall this was a great refresher on Angular.
 * Debugging Angular scope - Pick an element in the HTML panel of the developer tools and type this in the console: `angular.element($0).scope()`
 
+All code for this hack is available on my github. The salient files are located [here](https://github.com/ConstableBrew/mobcrush-video/tree/master/app).
 
 # /video_conversion.html
 
